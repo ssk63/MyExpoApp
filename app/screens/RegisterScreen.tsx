@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Button as PaperButton, Text as PaperText, TextInput } from 'react-native-paper';
 import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
-import { Button } from './components/Button';
-import { COLORS, FONT_SIZE, SPACING } from './constants/theme';
-import { useAuth } from './contexts/AuthContext';
+import { COLORS, FONT_SIZE, SPACING } from '../constants/theme';
+import { useAuth } from '../contexts/AuthContext';
+import { RootDrawerParamList } from '../types/navigation';
 
 interface FormData {
   name: string;
@@ -22,7 +23,7 @@ interface FormErrors {
 }
 
 export default function Register() {
-  const router = useRouter();
+  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
   const { register } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -103,7 +104,7 @@ export default function Register() {
         [
           {
             text: 'OK',
-            onPress: () => router.replace('/')
+            onPress: () => navigation.navigate('Home')
           }
         ]
       );
@@ -141,13 +142,12 @@ export default function Register() {
       <SafeAreaViewContext style={styles.header} edges={['top']}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Create Account</Text>
+        <PaperText variant="headlineMedium" style={styles.title}>Create Account</PaperText>
       </SafeAreaViewContext>
-
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -155,98 +155,77 @@ export default function Register() {
       >
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Full Name</Text>
             <TextInput
-              style={[styles.input, errors.name && styles.inputError]}
-              placeholder="Enter your full name"
+              label="Full Name"
+              mode="outlined"
               value={formData.name}
               onChangeText={(text) => handleInputChange('name', text)}
-              editable={!isSubmitting}
+              error={!!errors.name}
+              disabled={isSubmitting}
               autoCapitalize="words"
+              style={styles.input}
             />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            {errors.name && <PaperText style={styles.errorText}>{errors.name}</PaperText>}
           </View>
-
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
             <TextInput
-              style={[styles.input, errors.email && styles.inputError]}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
+              label="Email"
+              mode="outlined"
               value={formData.email}
               onChangeText={(text) => handleInputChange('email', text)}
-              editable={!isSubmitting}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={!!errors.email}
+              disabled={isSubmitting}
+              style={styles.input}
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && <PaperText style={styles.errorText}>{errors.email}</PaperText>}
           </View>
-
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.input, styles.passwordInput, errors.password && styles.inputError]}
-                placeholder="Enter your password"
-                secureTextEntry={!showPassword}
-                value={formData.password}
-                onChangeText={(text) => handleInputChange('password', text)}
-                editable={!isSubmitting}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={isSubmitting}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={COLORS.textLight}
-                />
-              </TouchableOpacity>
-            </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            <TextInput
+              label="Password"
+              mode="outlined"
+              value={formData.password}
+              onChangeText={(text) => handleInputChange('password', text)}
+              secureTextEntry={!showPassword}
+              error={!!errors.password}
+              disabled={isSubmitting}
+              right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
+              style={styles.input}
+            />
+            {errors.password && <PaperText style={styles.errorText}>{errors.password}</PaperText>}
           </View>
-
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.input, styles.passwordInput, errors.confirmPassword && styles.inputError]}
-                placeholder="Confirm your password"
-                secureTextEntry={!showConfirmPassword}
-                value={formData.confirmPassword}
-                onChangeText={(text) => handleInputChange('confirmPassword', text)}
-                editable={!isSubmitting}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={isSubmitting}
-              >
-                <Ionicons
-                  name={showConfirmPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={COLORS.textLight}
-                />
-              </TouchableOpacity>
-            </View>
-            {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+            <TextInput
+              label="Confirm Password"
+              mode="outlined"
+              value={formData.confirmPassword}
+              onChangeText={(text) => handleInputChange('confirmPassword', text)}
+              secureTextEntry={!showConfirmPassword}
+              error={!!errors.confirmPassword}
+              disabled={isSubmitting}
+              right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
+              style={styles.input}
+            />
+            {errors.confirmPassword && <PaperText style={styles.errorText}>{errors.confirmPassword}</PaperText>}
           </View>
-
-          <Button
-            title={isSubmitting ? "Creating Account..." : "Create Account"}
+          <PaperButton
+            mode="contained"
             onPress={handleRegister}
-            style={styles.registerButton}
+            loading={isSubmitting}
             disabled={isSubmitting}
-          />
-
+            style={styles.registerButton}
+            contentStyle={{ paddingVertical: 8 }}
+          >
+            Create Account
+          </PaperButton>
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
+            <PaperText style={styles.loginText}>Already have an account? </PaperText>
             <TouchableOpacity
-              onPress={() => router.push('/login')}
+              onPress={() => navigation.navigate('Login')}
               disabled={isSubmitting}
             >
-              <Text style={styles.loginLink}>Login</Text>
+              <PaperText style={styles.loginLink}>Login</PaperText>
             </TouchableOpacity>
           </View>
         </View>
@@ -297,34 +276,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: SPACING.lg,
   },
-  label: {
-    fontSize: FONT_SIZE.medium,
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
   input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: SPACING.md,
-    fontSize: FONT_SIZE.medium,
-    backgroundColor: '#fff',
-  },
-  passwordContainer: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: SPACING.xl + SPACING.md,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: SPACING.md,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    padding: SPACING.xs,
-  },
-  inputError: {
-    borderColor: COLORS.error,
+    // Removed custom styles for react-native-paper TextInput
   },
   errorText: {
     color: COLORS.error,

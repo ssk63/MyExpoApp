@@ -1,53 +1,27 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper';
+import { COLORS } from './constants/theme';
 import { AuthProvider } from './contexts/AuthContext';
+import AppNavigation from './Navigation';
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: COLORS.primary,
+    accent: COLORS.secondary,
+    background: COLORS.background,
+    text: COLORS.text,
+    error: COLORS.error,
+  },
+};
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="auto" />
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: '#f4511e',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-        }}
-      >
-        <Stack.Screen
-          name="index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="login"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="register"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="forgot-password"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="home"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-    </AuthProvider>
+    <PaperProvider theme={theme}>
+      <AuthProvider>
+        <AppNavigation />
+      </AuthProvider>
+    </PaperProvider>
   );
 }

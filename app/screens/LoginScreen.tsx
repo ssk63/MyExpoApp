@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Button as PaperButton, Text as PaperText, TextInput, useTheme } from 'react-native-paper';
 import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
-import { Button } from './components/Button';
-import { COLORS, FONT_SIZE, SPACING } from './constants/theme';
-import { useAuth } from './contexts/AuthContext';
+import { COLORS, FONT_SIZE, SPACING } from '../constants/theme';
+import { useAuth } from '../contexts/AuthContext';
+import { RootDrawerParamList } from '../types/navigation';
 
 interface FormErrors {
   email?: string;
@@ -18,16 +19,22 @@ interface FormData {
 }
 
 export default function Login() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
+  const { user, login } = useAuth();
+  const { colors } = useTheme();
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
   });
-
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    }
+  }, [user]);
 
   const validateEmail = (email: string): string | undefined => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,11 +51,9 @@ export default function Login() {
   const validateForm = (): boolean => {
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-    
     const newErrors: FormErrors = {};
     if (emailError) newErrors.email = emailError;
     if (passwordError) newErrors.password = passwordError;
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -66,7 +71,6 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       await login(formData.email, formData.password);
-      // Navigation is handled in AuthContext
     } catch (error: any) {
       Alert.alert('Login Failed', error?.message || 'Login failed');
     } finally {
@@ -79,7 +83,6 @@ export default function Login() {
       ...prev,
       [field]: value
     }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -101,7 +104,7 @@ export default function Login() {
         <SafeAreaViewContext style={styles.header} edges={['top']}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
             disabled={isSubmitting}
           >
             <Ionicons
@@ -110,71 +113,60 @@ export default function Login() {
               color={COLORS.text}
             />
           </TouchableOpacity>
-          <Text style={styles.title}>Welcome Back</Text>
+          <PaperText variant="headlineMedium" style={styles.title}>Welcome Back</PaperText>
         </SafeAreaViewContext>
-        
         <View style={styles.firstInputContainer}>
-          <Text style={styles.label}>Email</Text>
           <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
+            label="Email"
+            mode="outlined"
             value={formData.email}
             onChangeText={(text) => handleInputChange('email', text)}
-            editable={!isSubmitting}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={!!errors.email}
+            disabled={isSubmitting}
+            style={styles.input}
           />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          {errors.email && <PaperText style={styles.errorText}>{errors.email}</PaperText>}
         </View>
-
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[styles.input, styles.passwordInput, errors.password && styles.inputError]}
-              placeholder="Enter your password"
-              secureTextEntry={!showPassword}
-              value={formData.password}
-              onChangeText={(text) => handleInputChange('password', text)}
-              editable={!isSubmitting}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={togglePasswordVisibility}
-              disabled={isSubmitting}
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={24}
-                color={COLORS.textLight}
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+          <TextInput
+            label="Password"
+            mode="outlined"
+            value={formData.password}
+            onChangeText={(text) => handleInputChange('password', text)}
+            secureTextEntry={!showPassword}
+            error={!!errors.password}
+            disabled={isSubmitting}
+            right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={togglePasswordVisibility} />}
+            style={styles.input}
+          />
+          {errors.password && <PaperText style={styles.errorText}>{errors.password}</PaperText>}
         </View>
-
-        <Button
-          title={isSubmitting ? "Logging in..." : "Login"}
+        <PaperButton
+          mode="contained"
           onPress={handleLogin}
-          style={styles.loginButton}
+          loading={isSubmitting}
           disabled={isSubmitting}
-        />
-
+          style={styles.loginButton}
+          contentStyle={{ paddingVertical: 8 }}
+        >
+          Login
+        </PaperButton>
         <View style={styles.bottomContainer}>
           <TouchableOpacity
-            onPress={() => router.push('/forgot-password')}
+            onPress={() => navigation.navigate('ForgotPassword')}
             disabled={isSubmitting}
           >
-            <Text style={styles.forgotPassword}>Forgot Password?</Text>
+            <PaperText style={styles.forgotPassword}>Forgot Password?</PaperText>
           </TouchableOpacity>
-
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Don&apos;t have an account? </Text>
+            <PaperText style={styles.registerText}>Don&apos;t have an account? </PaperText>
             <TouchableOpacity
-              onPress={() => router.push('/register')}
+              onPress={() => navigation.navigate('Register')}
               disabled={isSubmitting}
             >
-              <Text style={styles.registerLink}>Sign Up</Text>
+              <PaperText style={styles.registerLink}>Sign Up</PaperText>
             </TouchableOpacity>
           </View>
         </View>
@@ -224,39 +216,14 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xl,
     marginBottom: SPACING.lg,
   },
-  label: {
-    fontSize: FONT_SIZE.medium,
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
   input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: SPACING.md,
-    fontSize: FONT_SIZE.medium,
-    backgroundColor: '#fff',
-  },
-  passwordContainer: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: SPACING.xl + SPACING.md,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: SPACING.md,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    padding: SPACING.xs,
-  },
-  inputError: {
-    borderColor: COLORS.error,
+    // Removed custom styles for react-native-paper TextInput
   },
   errorText: {
     color: COLORS.error,
     fontSize: FONT_SIZE.small,
     marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   loginButton: {
     marginTop: SPACING.md,

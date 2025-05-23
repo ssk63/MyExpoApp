@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
@@ -31,7 +30,6 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     loadUser();
@@ -69,7 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await AsyncStorage.setItem('@user', JSON.stringify(result.user));
       await AsyncStorage.setItem('@token', result.token);
       setUser(result.user);
-      router.replace('/home');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -99,7 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await AsyncStorage.setItem('@user', JSON.stringify(result.user));
       await AsyncStorage.setItem('@token', result.token);
       setUser(result.user);
-      router.replace('/home');
     } catch (error: any) {
       console.error('Login error:', error);
       throw error;

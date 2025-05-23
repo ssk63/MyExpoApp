@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Button as PaperButton, Text as PaperText, TextInput } from 'react-native-paper';
 import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
-import { Button } from './components/Button';
-import { COLORS, FONT_SIZE, SPACING } from './constants/theme';
+import { COLORS, FONT_SIZE, SPACING } from '../constants/theme';
+import { RootDrawerParamList } from '../types/navigation';
 
 export default function ForgotPassword() {
-  const router = useRouter();
+  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -49,7 +50,7 @@ export default function ForgotPassword() {
         [
           {
             text: 'OK',
-            onPress: () => router.back()
+            onPress: () => navigation.goBack()
           }
         ]
       );
@@ -70,41 +71,43 @@ export default function ForgotPassword() {
       <SafeAreaViewContext style={styles.header} edges={['top']}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Reset Password</Text>
+        <PaperText variant="headlineMedium" style={styles.title}>Reset Password</PaperText>
       </SafeAreaViewContext>
-
       <View style={styles.formContainer}>
-        <Text style={styles.description}>
+        <PaperText style={styles.description}>
           Enter your email address and we&apos;ll send you a link to reset your password.
-        </Text>
-
+        </PaperText>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
           <TextInput
-            style={[styles.input, error && styles.inputError]}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
+            label="Email"
+            mode="outlined"
             value={email}
             onChangeText={(text) => {
               setEmail(text);
               if (error) setError(undefined);
             }}
-            editable={!isSubmitting}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={!!error}
+            disabled={isSubmitting}
+            style={styles.input}
           />
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          {error && <PaperText style={styles.errorText}>{error}</PaperText>}
         </View>
-
-        <Button
-          title={isSubmitting ? "Sending..." : "Send Reset Link"}
+        <PaperButton
+          mode="contained"
           onPress={handleResetPassword}
-          style={styles.resetButton}
+          loading={isSubmitting}
           disabled={isSubmitting}
-        />
+          style={styles.resetButton}
+          contentStyle={{ paddingVertical: 8 }}
+        >
+          Send Reset Link
+        </PaperButton>
       </View>
     </View>
   );
@@ -152,21 +155,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: SPACING.lg,
   },
-  label: {
-    fontSize: FONT_SIZE.medium,
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
   input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: SPACING.md,
-    fontSize: FONT_SIZE.medium,
-    backgroundColor: '#fff',
-  },
-  inputError: {
-    borderColor: COLORS.error,
+    // Removed custom styles for react-native-paper TextInput
   },
   errorText: {
     color: COLORS.error,
